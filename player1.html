@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rock Paper Scissors - Player 1</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Player 1</h1>
+
+<h2 id="status">Connecting...</h2>
+
+<div class="buttons">
+  <button onclick="sendMove('rock')">Rock</button>
+  <button onclick="sendMove('paper')">Paper</button>
+  <button onclick="sendMove('scissors')">Scissors</button>
+</div>
+
+<table id="resultTable" style="display:none;">
+  <tr>
+    <th>Your Move</th>
+    <th>Opponent Move</th>
+    <th>Result</th>
+  </tr>
+  <tr>
+    <td id="yourMove">-</td>
+    <td id="opponentMove">-</td>
+    <td id="result">-</td>
+  </tr>
+</table>
+
+<script>
+let playerId = 1;
+let socket = new WebSocket("ws://localhost:8080/game");
+
+socket.onopen = () => {
+    document.getElementById("status").innerText = "Player 1 Connected! Waiting for Player 2...";
+};
+
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    
+    if (data.type === "gameStart") {
+        document.getElementById("status").innerText = "Player 2 Connected! Make your move.";
+    } else if (data.type === "result") {
+        document.getElementById("yourMove").innerText = data.yourMove;
+        document.getElementById("opponentMove").innerText = data.opponentMove;
+        document.getElementById("result").innerText = data.result;
+        document.getElementById("resultTable").style.display = "table";
+        document.getElementById("status").innerText = "Ready for next round";
+    }
+};
+
+function sendMove(move) {
+    socket.send(JSON.stringify({move: move, player: playerId}));
+    document.getElementById("status").innerText = `You played ${move}. Waiting...`;
+}
+</script>
+</body>
+</html>
